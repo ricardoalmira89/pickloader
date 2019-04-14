@@ -34,6 +34,25 @@ class AlmPick
         AlmArray::saveToFile($data, $filename);
     }
 
+    public function dumpCsv($filename, $fields = []){
+        $data = $this->load();
+        dump('Saving json to: '. $filename);
+
+        $fp = fopen($filename, 'w');
+
+        foreach ($data as $campos) {
+
+            foreach ($campos as $name => $value){
+               if (!in_array($name, $fields))
+                   unset($campos[$name]);
+            }
+
+            fputcsv($fp, $campos);
+        }
+
+        fclose($fp);
+    }
+
     /**
      * Convierte el array a [ ['fecha' => 'xxx', 'dia' => 'xxx', 'noche'], ['fecha' => 'xxx', 'dia' => 'xxx', 'noche'] ]
      * @param $data
@@ -48,12 +67,24 @@ class AlmPick
         foreach ($data as $fecha => $tiros){
             $result[] = array(
                 'fecha' => $fecha,
+
                 'dia' => isset($tiros['M']) ? $tiros['M'] : null,
+                'dia_centena' => isset($tiros['M']) ? $tiros['M'][0] : null,
+                'dia_fijo' => isset($tiros['M']) ? $tiros['M'][1].$tiros['E'][2] : null,
+                'dia_corrido1' => isset($tiros['M']) ? $tiros['M'][3].$tiros['E'][4] : null,
+                'dia_corrido2' => isset($tiros['M']) ? $tiros['M'][5].$tiros['E'][6] : null,
+
                 'noche' => $tiros['E'],
                 'noche_centena' => $tiros['E'][0],
                 'noche_fijo' => $tiros['E'][1].$tiros['E'][2],
+                'noche_fijo_b1' => $tiros['E'][1],
+                'noche_fijo_b2' => $tiros['E'][2],
                 'noche_corrido1' => $tiros['E'][3].$tiros['E'][4],
-                'noche_corrido2' => $tiros['E'][5].$tiros['E'][6]
+                'noche_corrido1_b1' => $tiros['E'][3],
+                'noche_corrido1_b2' => $tiros['E'][4],
+                'noche_corrido2' => $tiros['E'][5].$tiros['E'][6],
+                'noche_corrido2_b1' => $tiros['E'][5],
+                'noche_corrido2_b2' => $tiros['E'][6],
             );
         }
 
