@@ -11,13 +11,17 @@ class AlmPick
     );
 
     private $behavior = array(
-        'load-cached' => false
+        'load-cached' => false,
+        'sort' => 'ASC'
     );
 
     public function __construct($behavior = [])
     {
         if (AlmArray::get($behavior, 'load-cached'))
             $this->behavior['load-cached'] = $behavior['load-cached'];
+
+        if (AlmArray::get($behavior, 'sort'))
+            $this->behavior['sort'] = $behavior['sort'];
     }
 
     /**
@@ -35,7 +39,10 @@ class AlmPick
      * @param $data
      * @return array
      */
-    public function toFlattern($data){
+    private function toFlattern($data){
+
+        if ($this->getBehavior('load-cached'))
+            return $this->toFlatternCached();
 
         $result = [];
         foreach ($data as $fecha => $tiros){
@@ -49,6 +56,8 @@ class AlmPick
                 'noche_corrido2' => $tiros['E'][5].$tiros['E'][6]
             );
         }
+
+        AlmArray::saveToFile($result, 'resources/flattern.json');
 
         return $result;
     }
@@ -80,6 +89,12 @@ class AlmPick
 
         unset($data3, $data4);
 
+        dump('Creating Flattern array...');
+        $result = $this->toFlattern($result);
+
+        dump('Sorting Results');
+        $result = $this->sort($result, $this->getBehavior('sort'));
+
         return $result;
     }
 
@@ -94,12 +109,21 @@ class AlmPick
         return $data2;
     }
 
-    private function extractCached($pick){
-        return AlmArray::loadFromFile(sprintf('resources/matches.%s.json', $pick));
-    }
+    /**
+     * Extrae un array feo de pick3.com
+     * @return mixed
+     */
+    private function extract($pick){
+        dump('Extracting '. $pick);
 
-    private function buildCached($pick){
-        return AlmArray::loadFromFile(sprintf('resources/build.%s.json', $pick));
+        if ($this->getBehavior('load-cached'))
+            return $this->extractCached($pick);
+
+        $data = file_get_contents($this->pick[$pick]);
+        $data = preg_replace('/\&nbsp;/', '', $data);
+        preg_match_all('/\>(\d+\/*\d*\/*\d*|\&nbsp;M|\&nbsp;E|E|M)\</', $data, $matches);
+
+        return $matches[1];
     }
 
     private function buildArray($data, $pick){
@@ -133,21 +157,24 @@ class AlmPick
         return $result;
     }
 
-    /**
-     * Extrae un array feo de pick3.com
-     * @return mixed
-     */
-    private function extract($pick){
-        dump('Extracting '. $pick);
+    private function sort($data, $sorting = 'ASC'){
 
         if ($this->getBehavior('load-cached'))
-            return $this->extractCached($pick);
+            return $this->sortCached();
 
-        $data = file_get_contents($this->pick[$pick]);
-        $data = preg_replace('/\&nbsp;/', '', $data);
-        preg_match_all('/\>(\d+\/*\d*\/*\d*|\&nbsp;M|\&nbsp;E|E|M)\</', $data, $matches);
+        $left = ($sorting == 'DESC') ? 'a' : 'b';
+        $right = ($sorting == 'DESC') ? 'b' : 'a';
 
-        return $matches[1];
+        usort($data, function($a, $b) use ($left, $right) {
+            return
+                date_create_from_format('m/d/y H:i:s', $$right['fecha'].' 00:00:00')->getTimestamp()
+                <=>
+                date_create_from_format('m/d/y H:i:s', $$left['fecha'].' 00:00:00')->getTimestamp();
+        });
+
+        AlmArray::saveToFile($data, 'resources/sorted.json');
+
+        return $data;
     }
 
     /**
@@ -163,5 +190,24 @@ class AlmPick
     private function getBehavior($name){
         return AlmArray::get($this->behavior, $name, false);
     }
+
+    //----------------------------CACHED STUFF ------
+
+    private function extractCached($pick){
+        return AlmArray::loadFromFile(sprintf('resources/matches.%s.json', $pick));
+    }
+
+    private function buildCached($pick){
+        return AlmArray::loadFromFile(sprintf('resources/build.%s.json', $pick));
+    }
+
+    private function toFlatternCached(){
+        return AlmArray::loadFromFile('resources/flattern.json');
+    }
+
+    private function sortCached(){
+        return AlmArray::loadFromFile('resources/sorted.json');
+    }
+
 
 }
