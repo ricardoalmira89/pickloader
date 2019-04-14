@@ -1,0 +1,17 @@
+{
+    "name": "azcro/pick",
+    "description": "Crawler para obtener todos los numeros de la loteria de la florida",
+    "type": "library",
+    "require": {
+        "symfony/var-dumper": "^4.3@dev",
+        "azcro/alm": "dev-master"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Azcro",
+            "email": "develored3@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
