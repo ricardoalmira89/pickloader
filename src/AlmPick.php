@@ -70,9 +70,9 @@ class AlmPick
 
                 'dia' => isset($tiros['M']) ? $tiros['M'] : null,
                 'dia_centena' => isset($tiros['M']) ? $tiros['M'][0] : null,
-                'dia_fijo' => isset($tiros['M']) ? $tiros['M'][1].$tiros['E'][2] : null,
-                'dia_corrido1' => isset($tiros['M']) ? $tiros['M'][3].$tiros['E'][4] : null,
-                'dia_corrido2' => isset($tiros['M']) ? $tiros['M'][5].$tiros['E'][6] : null,
+                'dia_fijo' => isset($tiros['M']) ? $tiros['M'][1].$tiros['M'][2] : null,
+                'dia_corrido1' => isset($tiros['M']) ? $tiros['M'][3].$tiros['M'][4] : null,
+                'dia_corrido2' => isset($tiros['M']) ? $tiros['M'][5].$tiros['M'][6] : null,
 
                 'noche' => $tiros['E'],
                 'noche_centena' => $tiros['E'][0],
@@ -88,7 +88,7 @@ class AlmPick
             );
         }
 
-        AlmArray::saveToFile($result, 'resources/flattern.json');
+        AlmArray::saveToFile($result,  $this->getResourcesPath() . '/flattern.json');
 
         return $result;
     }
