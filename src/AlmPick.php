@@ -93,6 +93,10 @@ class AlmPick
         return $result;
     }
 
+    public function getResourcesPath(){
+        return __DIR__ . '/../resources';
+    }
+
     /**
      * Devuelve un array con todos los numeros cargados desde el servidor oficial.
      * Desde el primer dia hasta hoy.
